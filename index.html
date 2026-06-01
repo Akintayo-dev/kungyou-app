@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#0F0520"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="KungYou"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<title>KungYou Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --void:#0F0520;
+  --deep:#1E0A3C;
+  --dojo:#7B2FBE;
+  --pink:#F72585;
+  --parchment:#FFF5E4;
+  --glass:rgba(123,47,190,0.12);
+  --border:rgba(123,47,190,0.25);
+  --radius:14px;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--void);color:var(--parchment);font-family:'Cormorant Garamond',serif}
+
+/* LAYOUT */
+#app{display:flex;flex-direction:column;height:100%;padding-top:var(--safe-top)}
+#header{background:rgba(15,5,32,0.95);backdrop-filter:blur(20px);padding:16px 20px 12px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
+#header h1{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--parchment);letter-spacing:-.3px}
+#header h1 span{color:var(--pink)}
+.header-actions{display:flex;gap:10px;align-items:center}
+.header-btn{background:var(--glass);border:1px solid var(--border);color:var(--parchment);font-family:'DM Mono',monospace;font-size:11px;padding:6px 12px;border-radius:20px;cursor:pointer;transition:.2s}
+.header-btn.primary{background:var(--pink);border-color:var(--pink);color:#fff}
+.header-btn:active{opacity:.7;transform:scale(.97)}
+
+#content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:0 0 calc(80px + var(--safe-bottom)) 0}
+
+/* NAV */
+#nav{position:fixed;bottom:0;left:0;right:0;background:rgba(15,5,32,0.97);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;padding-bottom:var(--safe-bottom);z-index:100}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 4px 8px;cursor:pointer;transition:.2s;gap:4px}
+.nav-item .nav-icon{font-size:20px;line-height:1}
+.nav-item .nav-label{font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,245,228,0.4);transition:.2s;text-transform:uppercase;letter-spacing:.5px}
+.nav-item.active .nav-label{color:var(--pink)}
+.nav-item:active{transform:scale(.93)}
+
+/* SCREENS */
+.screen{display:none;padding:20px}
+.screen.active{display:block}
+
+/* CARDS */
+.card{background:var(--deep);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:14px}
+.card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dojo);margin-bottom:12px}
+.card-subtitle{font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,245,228,0.4);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat-box{background:var(--deep);border:1px solid var(--border);border-radius:var(--radius);padding:14px 10px;text-align:center}
+.stat-num{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--pink);line-height:1}
+.stat-label{font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,245,228,0.5);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+
+/* STUDENTS */
+.student-card{background:var(--deep);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:10px;cursor:pointer;transition:.2s;position:relative;overflow:hidden}
+.student-card:active{transform:scale(.98);opacity:.85}
+.student-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--dojo);border-radius:3px 0 0 3px}
+.student-card.expired::before{background:rgba(255,245,228,0.2)}
+.student-card.pending::before{background:var(--pink)}
+.student-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;margin-bottom:4px}
+.student-meta{font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,245,228,0.5);display:flex;gap:12px;flex-wrap:wrap}
+.student-focus{font-size:12px;color:rgba(255,245,228,0.7);margin-top:6px;font-style:italic}
+.status-badge{display:inline-block;font-family:'DM Mono',monospace;font-size:9px;padding:3px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:.5px;margin-left:auto}
+.status-badge.active{background:rgba(123,47,190,0.3);color:var(--dojo);border:1px solid var(--dojo)}
+.status-badge.expired{background:rgba(255,245,228,0.08);color:rgba(255,245,228,0.4);border:1px solid rgba(255,245,228,0.15)}
+.status-badge.pending{background:rgba(247,37,133,0.2);color:var(--pink);border:1px solid var(--pink)}
+.status-badge.returning{background:rgba(247,37,133,0.15);color:var(--pink);border:1px solid rgba(247,37,133,0.4)}
+.student-header-row{display:flex;align-items:center;justify-content:space-between}
+
+/* CHECKINS */
+.checkin-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+.checkin-student{flex:1;font-family:'Syne',sans-serif;font-size:13px;font-weight:700}
+.checkin-btns{display:flex;gap:6px}
+.ci-btn{font-family:'DM Mono',monospace;font-size:10px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--glass);color:var(--parchment);cursor:pointer;transition:.2s}
+.ci-btn.done{background:var(--dojo);border-color:var(--dojo);color:#fff}
+.ci-btn:active{transform:scale(.93)}
+
+/* FORMS */
+.form-group{margin-bottom:14px}
+.form-label{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,245,228,0.5);margin-bottom:6px;display:block}
+.form-input,.form-select,.form-textarea{width:100%;background:rgba(255,245,228,0.05);border:1px solid var(--border);border-radius:10px;color:var(--parchment);font-family:'Cormorant Garamond',serif;font-size:15px;padding:12px 14px;outline:none;transition:.2s;-webkit-appearance:none}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--dojo);background:rgba(123,47,190,0.1)}
+.form-textarea{resize:vertical;min-height:80px;line-height:1.5}
+.form-select option{background:var(--deep);color:var(--parchment)}
+
+/* BUTTONS */
+.btn{display:block;width:100%;padding:14px;border-radius:10px;border:none;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;letter-spacing:.5px;cursor:pointer;transition:.2s;text-align:center}
+.btn:active{transform:scale(.97);opacity:.85}
+.btn-primary{background:var(--pink);color:#fff}
+.btn-secondary{background:var(--glass);border:1px solid var(--border);color:var(--parchment)}
+.btn-dojo{background:var(--dojo);color:#fff}
+.btn-sm{padding:8px 16px;width:auto;display:inline-block;font-size:12px;border-radius:8px}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(15,5,32,0.92);backdrop-filter:blur(8px);z-index:200;display:none;align-items:flex-end;justify-content:center;padding-bottom:var(--safe-bottom)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--deep);border:1px solid var(--border);border-radius:20px 20px 0 0;padding:24px 20px;width:100%;max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.modal-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}
+.modal-close{background:var(--glass);border:1px solid var(--border);color:var(--parchment);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+
+/* AI OUTPUT */
+.ai-output{background:rgba(255,245,228,0.04);border:1px solid var(--border);border-radius:10px;padding:16px;font-size:14px;line-height:1.7;white-space:pre-wrap;min-height:80px;color:var(--parchment);font-family:'Cormorant Garamond',serif}
+.ai-output.loading{color:var(--dojo);font-family:'DM Mono',monospace;font-size:12px}
+
+/* TAGS */
+.tag{display:inline-block;font-family:'DM Mono',monospace;font-size:9px;padding:3px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:.5px;background:var(--glass);border:1px solid var(--border);margin:2px}
+
+/* DIVIDER */
+.divider{height:1px;background:var(--border);margin:16px 0}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:40px 20px;color:rgba(255,245,228,0.3)}
+.empty-state .empty-icon{font-size:40px;margin-bottom:12px}
+.empty-state p{font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.8px}
+
+/* RENEWAL ALERT */
+.renewal-alert{background:rgba(247,37,133,0.1);border:1px solid rgba(247,37,133,0.3);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.renewal-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--pink)}
+.renewal-days{font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,245,228,0.6);margin-top:3px}
+
+/* SECTION HEADER */
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.section-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800}
+.section-count{font-family:'DM Mono',monospace;font-size:11px;color:var(--dojo);background:var(--glass);padding:4px 10px;border-radius:10px;border:1px solid var(--border)}
+
+/* QUOTE CARD */
+.quote-card{background:linear-gradient(135deg,var(--deep),rgba(123,47,190,0.2));border:1px solid var(--border);border-radius:var(--radius);padding:24px;text-align:center;margin-bottom:14px}
+.quote-text{font-family:'Cormorant Garamond',serif;font-size:20px;font-style:italic;line-height:1.5;margin-bottom:12px;color:var(--parchment)}
+.quote-category{font-family:'DM Mono',monospace;font-size:10px;color:var(--dojo);text-transform:uppercase;letter-spacing:1px}
+
+/* WEEK GRID */
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:14px}
+.week-day{background:var(--deep);border:1px solid var(--border);border-radius:8px;padding:8px 4px;text-align:center}
+.week-day.today{border-color:var(--pink);background:rgba(247,37,133,0.1)}
+.week-day-name{font-family:'DM Mono',monospace;font-size:8px;color:rgba(255,245,228,0.4);text-transform:uppercase;margin-bottom:4px}
+.week-day-num{font-family:'Syne',sans-serif;font-size:14px;font-weight:800}
+.week-day-dot{width:5px;height:5px;border-radius:50%;margin:3px auto 0;background:rgba(255,245,228,0.15)}
+.week-day.today .week-day-dot{background:var(--pink)}
+
+/* INSTALL BANNER */
+#install-banner{background:linear-gradient(135deg,var(--dojo),var(--pink));padding:12px 16px;display:none;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0}
+#install-banner.show{display:flex}
+#install-banner p{font-family:'DM Mono',monospace;font-size:11px;color:#fff;flex:1}
+#install-banner button{background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:#fff;font-family:'Syne',sans-serif;font-size:12px;font-weight:800;padding:7px 14px;border-radius:8px;cursor:pointer;white-space:nowrap}
+
+/* ANALYTICS */
+.progress-bar{background:rgba(255,245,228,0.08);border-radius:20px;height:8px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--dojo),var(--pink));transition:width .6s ease}
+
+/* TOAST */
+#toast{position:fixed;bottom:calc(90px + var(--safe-bottom));left:50%;transform:translateX(-50%) translateY(20px);background:var(--dojo);color:#fff;font-family:'DM Mono',monospace;font-size:12px;padding:10px 20px;border-radius:20px;opacity:0;transition:.3s;z-index:300;pointer-events:none;white-space:nowrap}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* STUDENT DETAIL */
+.detail-section{margin-bottom:20px}
+.detail-label{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--dojo);margin-bottom:6px}
+.detail-value{font-size:15px;line-height:1.5}
+.notes-list{display:flex;flex-direction:column;gap:8px}
+.note-item{background:rgba(255,245,228,0.04);border-left:2px solid var(--dojo);padding:10px 12px;border-radius:0 8px 8px 0;font-size:13px;line-height:1.5}
+.note-date{font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,245,228,0.4);margin-top:4px}
+
+/* SCROLL ANIM */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.screen.active{animation:fadeUp .25s ease}
+
+/* TOGGLE PILLS */
+.pill-group{display:flex;background:rgba(255,245,228,0.05);border-radius:10px;padding:3px;gap:3px;margin-bottom:14px}
+.pill{flex:1;text-align:center;font-family:'DM Mono',monospace;font-size:10px;padding:7px 4px;border-radius:8px;cursor:pointer;color:rgba(255,245,228,0.5);transition:.2s;text-transform:uppercase;letter-spacing:.3px}
+.pill.active{background:var(--dojo);color:#fff}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- Install Banner -->
+  <div id="install-banner">
+    <p>📲 Install KungYou on your home screen</p>
+    <button onclick="installApp()">Install</button>
+  </div>
+
+  <!-- Header -->
+  <div id="header">
+    <h1>Kung<span>You</span> Academy</h1>
+    <div class="header-actions">
+      <button class="header-btn" onclick="openModal('add-student-modal')">+ Student</button>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div id="content">
+
+    <!-- DASHBOARD -->
+    <div id="screen-dashboard" class="screen active">
+      <div style="padding:20px">
+        <div class="stats-row" id="dash-stats"></div>
+        <div class="card" id="dash-renewals-card">
+          <div class="card-title">⚡ Renewals to Watch</div>
+          <div id="dash-renewals"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">📅 This Week</div>
+          <div class="week-grid" id="week-grid"></div>
+          <div id="week-schedule"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">🔁 Today's Check-ins</div>
+          <div id="dash-checkins"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STUDENTS -->
+    <div id="screen-students" class="screen">
+      <div style="padding:20px">
+        <div class="section-header">
+          <div class="section-title">The Dojo</div>
+          <div class="section-count" id="student-count">0</div>
+        </div>
+        <div class="pill-group">
+          <div class="pill active" onclick="filterStudents('all',this)">All</div>
+          <div class="pill" onclick="filterStudents('active',this)">Active</div>
+          <div class="pill" onclick="filterStudents('expired',this)">Expired</div>
+          <div class="pill" onclick="filterStudents('pending',this)">Pending</div>
+        </div>
+        <div id="student-list"></div>
+      </div>
+    </div>
+
+    <!-- CHECK-INS -->
+    <div id="screen-checkins" class="screen">
+      <div style="padding:20px">
+        <div class="section-title" style="margin-bottom:16px">Today's Check-ins</div>
+        <div class="pill-group">
+          <div class="pill active" onclick="setCheckinType('morning',this)">🌅 Morning</div>
+          <div class="pill" onclick="setCheckinType('afternoon',this)">☀️ Afternoon</div>
+          <div class="pill" onclick="setCheckinType('evening',this)">🌙 Evening</div>
+        </div>
+        <div id="checkin-list"></div>
+        <div class="divider"></div>
+        <div class="card-title">Today's Prompt</div>
+        <div class="card" id="daily-prompt-card" style="font-size:16px;font-style:italic;line-height:1.6"></div>
+      </div>
+    </div>
+
+    <!-- WEEKLY VIEW -->
+    <div id="screen-weekly" class="screen">
+      <div style="padding:20px">
+        <div class="section-title" style="margin-bottom:16px">Weekly View</div>
+        <div id="weekly-intentions"></div>
+        <div class="card">
+          <div class="card-title">This Week's Schedule</div>
+          <div id="full-week-schedule"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RENEWALS -->
+    <div id="screen-renewals" class="screen">
+      <div style="padding:20px">
+        <div class="section-title" style="margin-bottom:16px">Renewals</div>
+        <div id="renewal-list"></div>
+      </div>
+    </div>
+
+    <!-- NUGGETS -->
+    <div id="screen-nuggets" class="screen">
+      <div style="padding:20px">
+        <div class="section-title" style="margin-bottom:16px">Month Nuggets</div>
+        <div class="card" style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,245,228,0.5);font-style:italic;line-height:1.6;margin-bottom:16px">
+          A student without their nuggets is a student you have not fully served yet.
+        </div>
+        <div id="nuggets-list"></div>
+        <button class="btn btn-primary" style="margin-top:14px" onclick="openModal('add-nugget-modal')">+ Add Nugget</button>
+      </div>
+    </div>
+
+    <!-- QUOTES -->
+    <div id="screen-quotes" class="screen">
+      <div style="padding:20px">
+        <div class="section-title" style="margin-bottom:16px">Sensei Voice</div>
+        <div class="quote-card" id="quote-display">
+          <div class="quote-text" id="quote-text">Loading wisdom...</div>
+          <div class="quote-category" id="quote-cat">—</div>
+        </div>
+        <div style="display:flex;gap:10px;margin-bottom:14px">
+          <button class="btn btn-secondary" style="flex:1" onclick="shuffleQuote()">Shuffle</button>
+          <button class="btn btn-dojo" style="flex:1" onclick="copyQuote()">Copy</button>
+        </div>
+        <div class="pill-group" style="flex-wrap:wrap">
+          <div class="pill active" onclick="setQuoteCat('all',this)">All</div>
+          <div class="pill" onclick="setQuoteCat('discipline',this)">Discipline</div>
+          <div class="pill" onclick="setQuoteCat('clarity',this)">Clarity</div>
+          <div class="pill" onclick="setQuoteCat('execution',this)">Execution</div>
+          <div class="pill" onclick="setQuoteCat('faith',this)">Faith</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEWSLETTER ENGINE -->
+    <div id="screen-newsletter" class="screen">
+      <div style="padding:20px">
+        <div class="section-title" style="margin-bottom:16px">Newsletter Engine</div>
+        <div class="form-group">
+          <label class="form-label">Theme / Topic</label>
+          <input class="form-input" id="nl-topic" placeholder="e.g. Why consistency beats motivation"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Audience</label>
+          <select class="form-select" id="nl-audience">
+            <option value="All KungYou Practitioners">All KungYou Practitioners</option>
+            <option value="Entrepreneurs & Builders">Entrepreneurs & Builders</option>
+            <option value="Students & Graduates">Students & Graduates</option>
+            <option value="Creatives & Content Creators">Creatives & Content Creators</option>
+            <option value="9-5 Professionals">9-5 Professionals</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Format</label>
+          <select class="form-select" id="nl-format">
+            <option value="Full Newsletter (1500+ words)">Full Newsletter (1500+ words)</option>
+            <option value="Short Edition (600 words)">Short Edition (600 words)</option>
+            <option value="Headline + Summary Only">Headline + Summary Only</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tone</label>
+          <select class="form-select" id="nl-tone">
+            <option value="Confrontational & Honest">Confrontational & Honest</option>
+            <option value="Reflective & Philosophical">Reflective & Philosophical</option>
+            <option value="Practical & Tactical">Practical & Tactical</option>
+            <option value="Storytelling & Narrative">Storytelling & Narrative</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="generateNewsletter()">Generate Newsletter</button>
+        <div class="divider"></div>
+        <div class="ai-output" id="nl-output">Newsletter output will appear here. Fill in the topic and click Generate.</div>
+        <button class="btn btn-secondary" style="margin-top:10px" onclick="copyOutput('nl-output')">Copy Output</button>
+      </div>
+    </div>
+
+    <!-- AI CHECK-IN -->
+    <div id="screen-ai-checkin" class="screen">
+      <div style="padding:20px">
+        <div class="section-title" style="margin-bottom:16px">AI Check-in Generator</div>
+        <div class="form-group">
+          <label class="form-label">Select Practitioner</label>
+          <select class="form-select" id="ai-student-select">
+            <option value="">— Choose a student —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Check-in Type</label>
+          <div class="pill-group">
+            <div class="pill active" onclick="setAiType('morning',this)">🌅 Morning</div>
+            <div class="pill" onclick="setAiType('afternoon',this)">☀️ Afternoon</div>
+            <div class="pill" onclick="setAiType('evening',this)">🌙 Evening</div>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="generateCheckin()">Generate Check-in</button>
+        <button class="btn btn-secondary" style="margin-top:8px" onclick="generateAllCheckins()">Generate All Students</button>
+        <div class="divider"></div>
+        <div class="ai-output" id="ai-output">Select a student and check-in type, then click Generate.</div>
+        <button class="btn btn-secondary" style="margin-top:10px" onclick="copyOutput('ai-output')">Copy Message</button>
+      </div>
+    </div>
+
+    <!-- ANALYTICS -->
+    <div id="screen-analytics" class="screen">
+      <div style="padding:20px">
+        <div class="section-title" style="margin-bottom:16px">Analytics</div>
+        <div id="analytics-content"></div>
+      </div>
+    </div>
+
+    <!-- EXPORT -->
+    <div id="screen-export" class="screen">
+      <div style="padding:20px">
+        <div class="section-title" style="margin-bottom:16px">Export & Backup</div>
+        <div class="card" style="margin-bottom:10px">
+          <div class="card-title">💾 Full JSON Backup</div>
+          <p style="font-size:13px;margin-bottom:12px;opacity:.7">Complete data export — students, notes, check-ins, intentions.</p>
+          <button class="btn btn-primary" onclick="exportJSON()">Download JSON</button>
+        </div>
+        <div class="card" style="margin-bottom:10px">
+          <div class="card-title">📊 Students CSV</div>
+          <p style="font-size:13px;margin-bottom:12px;opacity:.7">All student profiles as a spreadsheet.</p>
+          <button class="btn btn-dojo" onclick="exportCSV()">Download CSV</button>
+        </div>
+        <div class="card" style="margin-bottom:10px">
+          <div class="card-title">📥 Import Backup</div>
+          <p style="font-size:13px;margin-bottom:12px;opacity:.7">Restore from a previous JSON backup.</p>
+          <input type="file" id="import-file" accept=".json" style="display:none" onchange="importJSON(event)"/>
+          <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">Import JSON</button>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color:var(--pink)">🗑️ Clear All Data</div>
+          <p style="font-size:13px;margin-bottom:12px;opacity:.7">Wipe everything. Export a backup first.</p>
+          <button class="btn btn-secondary" style="border-color:var(--pink);color:var(--pink)" onclick="clearData()">Clear All Data</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end content -->
+
+  <!-- BOTTOM NAV -->
+  <div id="nav">
+    <div class="nav-item active" onclick="showScreen('dashboard',this)">
+      <div class="nav-icon">⚡</div>
+      <div class="nav-label">Home</div>
+    </div>
+    <div class="nav-item" onclick="showScreen('students',this)">
+      <div class="nav-icon">👥</div>
+      <div class="nav-label">Dojo</div>
+    </div>
+    <div class="nav-item" onclick="showScreen('checkins',this)">
+      <div class="nav-icon">🔁</div>
+      <div class="nav-label">Check-in</div>
+    </div>
+    <div class="nav-item" onclick="showScreen('newsletter',this)">
+      <div class="nav-icon">📰</div>
+      <div class="nav-label">Newsletter</div>
+    </div>
+    <div class="nav-item" onclick="showScreen('ai-checkin',this)">
+      <div class="nav-icon">🤖</div>
+      <div class="nav-label">AI</div>
+    </div>
+    <div class="nav-item" onclick="openMoreMenu()">
+      <div class="nav-icon">☰</div>
+      <div class="nav-label">More</div>
+    </div>
+  </div>
+</div><!-- end app -->
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- MORE MENU MODAL -->
+<div class="modal-overlay" id="more-menu-modal">
+  <div class="modal">
+    <div class="modal-title">More <button class="modal-close" onclick="closeModal('more-menu-modal')">✕</button></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button class="btn btn-secondary" onclick="goTo('weekly')">📅 Weekly</button>
+      <button class="btn btn-secondary" onclick="goTo('renewals')">🔔 Renewals</button>
+      <button class="btn btn-secondary" onclick="goTo('nuggets')">💎 Nuggets</button>
+      <button class="btn btn-secondary" onclick="goTo('quotes')">✦ Quotes</button>
+      <button class="btn btn-secondary" onclick="goTo('analytics')">📊 Analytics</button>
+      <button class="btn btn-secondary" onclick="goTo('export')">💾 Export</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD STUDENT MODAL -->
+<div class="modal-overlay" id="add-student-modal">
+  <div class="modal">
+    <div class="modal-title">New Student <button class="modal-close" onclick="closeModal('add-student-modal')">✕</button></div>
+    <div class="form-group">
+      <label class="form-label">Full Name *</label>
+      <input class="form-input" id="s-name" placeholder="Student name"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">WhatsApp Number</label>
+      <input class="form-input" id="s-wa" placeholder="+234..."/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Monthly Focus *</label>
+      <input class="form-input" id="s-focus" placeholder="What are they working on this month?"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Yearly Goal</label>
+      <input class="form-input" id="s-goal" placeholder="Their big goal for the year"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Biggest Obstacle</label>
+      <input class="form-input" id="s-obstacle" placeholder="What's in their way?"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Relationship with Discipline</label>
+      <select class="form-select" id="s-discipline">
+        <option value="">— Select —</option>
+        <option value="Strong — Shows up regardless">Strong — Shows up regardless</option>
+        <option value="Inconsistent — Starts and stops">Inconsistent — Starts and stops</option>
+        <option value="Struggling — Knows what to do but doesn't">Struggling — Knows what to do but doesn't</option>
+        <option value="Rebuilding — Getting back on track">Rebuilding — Getting back on track</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Start Date *</label>
+      <input class="form-input" type="date" id="s-start"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Renewal Date *</label>
+      <input class="form-input" type="date" id="s-renewal"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Status</label>
+      <select class="form-select" id="s-status">
+        <option value="active">Active</option>
+        <option value="pending">Pending</option>
+        <option value="expired">Expired</option>
+        <option value="returning">Returning</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" onclick="addStudent()">Add to the Dojo</button>
+  </div>
+</div>
+
+<!-- STUDENT DETAIL MODAL -->
+<div class="modal-overlay" id="student-detail-modal">
+  <div class="modal">
+    <div class="modal-title" id="detail-title">Student <button class="modal-close" onclick="closeModal('student-detail-modal')">✕</button></div>
+    <div id="student-detail-content"></div>
+  </div>
+</div>
+
+<!-- ADD NOTE MODAL -->
+<div class="modal-overlay" id="add-note-modal">
+  <div class="modal">
+    <div class="modal-title">Log a Note <button class="modal-close" onclick="closeModal('add-note-modal')">✕</button></div>
+    <input type="hidden" id="note-student-id"/>
+    <div class="form-group">
+      <label class="form-label">Note / Call Summary</label>
+      <textarea class="form-textarea" id="note-text" placeholder="What happened? What did you discuss?" style="min-height:120px"></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="addNote()">Save Note</button>
+  </div>
+</div>
+
+<!-- ADD NUGGET MODAL -->
+<div class="modal-overlay" id="add-nugget-modal">
+  <div class="modal">
+    <div class="modal-title">Add Month Nugget <button class="modal-close" onclick="closeModal('add-nugget-modal')">✕</button></div>
+    <div class="form-group">
+      <label class="form-label">Nugget / Key Insight</label>
+      <textarea class="form-textarea" id="nugget-text" placeholder="What's the lesson or win this month?"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Student (optional)</label>
+      <select class="form-select" id="nugget-student">
+        <option value="">— General / All Students —</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" onclick="addNugget()">Save Nugget</button>
+  </div>
+</div>
+
+<!-- WEEKLY INTENTION MODAL -->
+<div class="modal-overlay" id="intention-modal">
+  <div class="modal">
+    <div class="modal-title" id="intention-title">Weekly Intentions <button class="modal-close" onclick="closeModal('intention-modal')">✕</button></div>
+    <input type="hidden" id="intention-student-id"/>
+    <div class="form-group">
+      <label class="form-label">Target 1</label>
+      <input class="form-input" id="int-1" placeholder="First priority this week"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Target 2</label>
+      <input class="form-input" id="int-2" placeholder="Second priority"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Target 3</label>
+      <input class="form-input" id="int-3" placeholder="Third priority"/>
+    </div>
+    <button class="btn btn-primary" onclick="saveIntention()">Save Intentions</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA LAYER
+// ============================================================
+const DB_KEY = 'kya_data_v3';
+
+function loadData(){
+  try{
+    const raw = localStorage.getItem(DB_KEY);
+    if(!raw) return defaultData();
+    return JSON.parse(raw);
+  }catch(e){return defaultData();}
+}
+
+function saveData(d){
+  localStorage.setItem(DB_KEY, JSON.stringify(d));
+}
+
+function defaultData(){
+  return {students:[],checkins:{},intentions:{},nuggets:[],lastQuoteIndex:0};
+}
+
+let DATA = loadData();
+
+// ============================================================
+// QUOTES
+// ============================================================
+const QUOTES = {
+  discipline:[
+    "Discipline is not punishment. It is the price you pay to become someone worth being.",
+    "The days you do not feel like it are the only days that count.",
+    "Structure is not a cage. It is the architecture of a life that works.",
+    "You do not need motivation. You need a system that does not ask how you feel.",
+    "Every morning you wake up and choose not to build, someone else is building what you said you wanted.",
+    "Discipline is remembering what you said you wanted when the feeling has gone.",
+    "The gap between who you are and who you want to be is filled with decisions, not dreams.",
+    "Comfort is not the enemy of success. Comfort that you have not earned is.",
+  ],
+  clarity:[
+    "Confusion is not a problem with the path. It is a problem with the lens.",
+    "You cannot execute what you have not defined. Clarity before movement.",
+    "The person who knows exactly what they want is terrifying to watch because they do not stop.",
+    "Most people are not stuck. They are vague. Vagueness feels like being stuck.",
+    "Before you ask how, answer why. The why survives the hard days. The how does not.",
+    "Clarity is a decision. Not a feeling that arrives.",
+  ],
+  execution:[
+    "Ideas are not the problem. Execution is the problem. Ideas are free. Execution costs everything.",
+    "Done badly beats not done. You cannot improve what does not exist.",
+    "The person who moves imperfectly beats the person who plans perfectly every time.",
+    "Action is a drug. Once you start moving you cannot stop. But you have to start.",
+    "You do not find momentum. You build it. One small completed thing at a time.",
+    "The work you keep postponing is the work that is keeping you small.",
+  ],
+  faith:[
+    "God does not bless stagnation. He blesses movement.",
+    "Prayer without action is decoration. Action without prayer is arrogance. You need both.",
+    "Your faith is revealed in your calendar, not your declarations.",
+    "The version of yourself that God sees is not the version you see in the mirror yet. That is the point.",
+    "Trust the process means trust that God put the desire in you for a reason. Move accordingly.",
+    "I love you and God will help you.",
+  ],
+  clarity2:[
+    "You already know what to do. You are looking for permission. I am giving it to you now.",
+    "The version of you that is waiting for the right moment is the version that never arrives.",
+  ]
+};
+
+const ALL_QUOTES = Object.entries(QUOTES).flatMap(([cat,arr])=>arr.map(q=>({text:q,cat:cat.replace('2','')})));
+let currentQuoteCat = 'all';
+let filteredQuotes = [...ALL_QUOTES];
+let currentQuoteIdx = 0;
+
+function shuffleQuote(){
+  filteredQuotes = currentQuoteCat==='all' ? [...ALL_QUOTES] : ALL_QUOTES.filter(q=>q.cat===currentQuoteCat);
+  if(!filteredQuotes.length) return;
+  currentQuoteIdx = Math.floor(Math.random()*filteredQuotes.length);
+  renderQuote();
+}
+
+function renderQuote(){
+  const q = filteredQuotes[currentQuoteIdx];
+  if(!q) return;
+  document.getElementById('quote-text').textContent = '"'+q.text+'"';
+  document.getElementById('quote-cat').textContent = '— '+q.cat.charAt(0).toUpperCase()+q.cat.slice(1);
+}
+
+function setQuoteCat(cat,el){
+  document.querySelectorAll('#screen-quotes .pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  currentQuoteCat = cat;
+  shuffleQuote();
+}
+
+function copyQuote(){
+  const t = document.getElementById('quote-text').textContent;
+  navigator.clipboard.writeText(t).then(()=>toast('Quote copied'));
+}
+
+// Daily prompts
+const DAILY_PROMPTS = {
+  morning:[
+    "What is the one thing you will finish today before 6pm?",
+    "Name one thing you have been avoiding. When will you face it today?",
+    "What does winning today look like in three words?",
+    "What is the first action you will take in the next 60 minutes?",
+    "Who are you building this for today? Say their name or say your name.",
+    "What habit are you reinforcing today? Name it.",
+    "What is the lie you told yourself yesterday that you will not tell today?",
+  ],
+  afternoon:[
+    "How is the morning intention holding up? Be honest in one sentence.",
+    "What has distracted you today and what are you doing about it?",
+    "Rate your morning 1-10. What needs to change before evening?",
+    "What is one thing you have already completed today that you can build on?",
+    "What decision are you avoiding right now?",
+  ],
+  evening:[
+    "What did you actually finish today? No stories. Just facts.",
+    "What is one thing you learned about yourself today?",
+    "Did you show up as the person you said you wanted to be? Yes or no and why.",
+    "What do you carry into tomorrow and what do you leave here?",
+    "Name one thing you are grateful for and one thing you will do differently tomorrow.",
+  ]
+};
+
+let currentCheckinType = 'morning';
+
+function getTodayPrompt(type){
+  const prompts = DAILY_PROMPTS[type]||DAILY_PROMPTS.morning;
+  const day = new Date().getDay();
+  return prompts[day % prompts.length];
+}
+
+// ============================================================
+// SCREEN NAVIGATION
+// ============================================================
+function showScreen(name, navEl){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  if(navEl) navEl.classList.add('active');
+  refreshScreen(name);
+  closeModal('more-menu-modal');
+}
+
+function goTo(name){
+  showScreen(name, null);
+  closeModal('more-menu-modal');
+}
+
+function refreshScreen(name){
+  if(name==='dashboard') renderDashboard();
+  if(name==='students') renderStudents('all');
+  if(name==='checkins') renderCheckins();
+  if(name==='weekly') renderWeekly();
+  if(name==='renewals') renderRenewals();
+  if(name==='nuggets') renderNuggets();
+  if(name==='quotes') shuffleQuote();
+  if(name==='analytics') renderAnalytics();
+  if(name==='ai-checkin') populateAiStudentSelect();
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function renderDashboard(){
+  const active = DATA.students.filter(s=>s.status==='active').length;
+  const expired = DATA.students.filter(s=>s.status==='expired').length;
+  const pending = DATA.students.filter(s=>s.status==='pending').length;
+  const today = todayKey();
+  const totalToday = DATA.students.filter(s=>s.status==='active').length;
+  const checkedIn = Object.keys(DATA.checkins[today]||{}).filter(id=>{
+    const ci = DATA.checkins[today][id];
+    return ci.morning||ci.afternoon||ci.evening;
+  }).length;
+
+  document.getElementById('dash-stats').innerHTML = `
+    <div class="stat-box"><div class="stat-num">${active}</div><div class="stat-label">Active</div></div>
+    <div class="stat-box"><div class="stat-num">${expired}</div><div class="stat-label">Alumni</div></div>
+    <div class="stat-box"><div class="stat-num">${checkedIn}/${totalToday}</div><div class="stat-label">Today</div></div>
+  `;
+
+  // Renewals
+  const renewalStudents = DATA.students.filter(s=>daysUntilRenewal(s)<=7&&s.status==='active');
+  const renewDiv = document.getElementById('dash-renewals');
+  if(renewalStudents.length===0){
+    renewDiv.innerHTML = '<p style="font-family:\'DM Mono\',monospace;font-size:11px;opacity:.5">No renewals in the next 7 days.</p>';
+  } else {
+    renewDiv.innerHTML = renewalStudents.map(s=>`
+      <div class="renewal-alert">
+        <div class="renewal-name">${s.name}</div>
+        <div class="renewal-days">${daysUntilRenewal(s)} days until renewal — ${s.renewal}</div>
+      </div>
+    `).join('');
+  }
+
+  // Week grid
+  renderWeekGrid();
+  renderTodaySchedule();
+  renderDashCheckins();
+}
+
+function renderWeekGrid(){
+  const days=['S','M','T','W','T','F','S'];
+  const today = new Date();
+  const todayDow = today.getDay();
+  let html='';
+  for(let i=0;i<7;i++){
+    const isToday = i===todayDow;
+    const d = new Date(today);
+    d.setDate(today.getDate()-(todayDow-i));
+    html+=`<div class="week-day${isToday?' today':''}">
+      <div class="week-day-name">${days[i]}</div>
+      <div class="week-day-num">${d.getDate()}</div>
+      <div class="week-day-dot"></div>
+    </div>`;
+  }
+  document.getElementById('week-grid').innerHTML = html;
+}
+
+const WEEKLY_SCHEDULE = {
+  0:{label:'Sun',items:['Newsletter','Weekly Scroll Due 6pm','Reflection Prompt']},
+  1:{label:'Mon',items:['Newsletter','Intention Drop','The Case']},
+  2:{label:'Tue',items:['Newsletter','Process Call']},
+  3:{label:'Wed',items:['Newsletter','Anchor Session']},
+  4:{label:'Thu',items:['Newsletter','Growth Push','Dojo Floor 30min']},
+  5:{label:'Fri',items:['Newsletter','Week Review']},
+  6:{label:'Sat',items:['Rest Signal']},
+};
+
+function renderTodaySchedule(){
+  const dow = new Date().getDay();
+  const sched = WEEKLY_SCHEDULE[dow];
+  if(!sched) return;
+  document.getElementById('week-schedule').innerHTML = sched.items.map(i=>`
+    <div style="font-family:'DM Mono',monospace;font-size:11px;padding:6px 0;border-bottom:1px solid var(--border);color:rgba(255,245,228,0.7)">• ${i}</div>
+  `).join('');
+}
+
+function renderDashCheckins(){
+  const active = DATA.students.filter(s=>s.status==='active');
+  const today = todayKey();
+  if(active.length===0){
+    document.getElementById('dash-checkins').innerHTML = '<p style="font-family:\'DM Mono\',monospace;font-size:11px;opacity:.5">No active students yet.</p>';
+    return;
+  }
+  document.getElementById('dash-checkins').innerHTML = active.slice(0,5).map(s=>{
+    const ci = (DATA.checkins[today]||{})[s.id]||{};
+    return `<div class="checkin-row">
+      <div class="checkin-student">${s.name}</div>
+      <div class="checkin-btns">
+        <button class="ci-btn${ci.morning?' done':''}" onclick="toggleCheckin('${s.id}','morning')">🌅</button>
+        <button class="ci-btn${ci.afternoon?' done':''}" onclick="toggleCheckin('${s.id}','afternoon')">☀️</button>
+        <button class="ci-btn${ci.evening?' done':''}" onclick="toggleCheckin('${s.id}','evening')">🌙</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// STUDENTS
+// ============================================================
+let currentFilter = 'all';
+
+function renderStudents(filter){
+  currentFilter = filter;
+  const students = filter==='all' ? DATA.students : DATA.students.filter(s=>s.status===filter);
+  document.getElementById('student-count').textContent = students.length;
+  if(students.length===0){
+    document.getElementById('student-list').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">👥</div>
+        <p>No students yet.<br/>Add the first practitioner.</p>
+      </div>`;
+    return;
+  }
+  document.getElementById('student-list').innerHTML = students.map(s=>`
+    <div class="student-card ${s.status}" onclick="openStudentDetail('${s.id}')">
+      <div class="student-header-row">
+        <div class="student-name">${s.name}</div>
+        <div class="status-badge ${s.status}">${s.status}</div>
+      </div>
+      <div class="student-focus">${s.focus||''}</div>
+      <div class="student-meta" style="margin-top:8px">
+        <span>Joined ${s.start||'—'}</span>
+        <span>Renews ${s.renewal||'—'}</span>
+        ${s.wa?`<span>📱 ${s.wa}</span>`:''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterStudents(filter, el){
+  document.querySelectorAll('#screen-students .pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  renderStudents(filter);
+}
+
+function addStudent(){
+  const name = document.getElementById('s-name').value.trim();
+  const focus = document.getElementById('s-focus').value.trim();
+  const start = document.getElementById('s-start').value;
+  const renewal = document.getElementById('s-renewal').value;
+  if(!name||!focus||!start||!renewal){toast('Fill in required fields');return;}
+  const student = {
+    id: 'stu_'+Date.now(),
+    name, focus,
+    wa: document.getElementById('s-wa').value.trim(),
+    goal: document.getElementById('s-goal').value.trim(),
+    obstacle: document.getElementById('s-obstacle').value.trim(),
+    discipline: document.getElementById('s-discipline').value,
+    start, renewal,
+    status: document.getElementById('s-status').value,
+    notes: [],
+    createdAt: new Date().toISOString()
+  };
+  DATA.students.push(student);
+  saveData(DATA);
+  closeModal('add-student-modal');
+  clearStudentForm();
+  toast(name+' added to the Dojo');
+  renderStudents(currentFilter);
+  renderDashboard();
+}
+
+function clearStudentForm(){
+  ['s-name','s-wa','s-focus','s-goal','s-obstacle','s-start','s-renewal'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  document.getElementById('s-discipline').value='';
+  document.getElementById('s-status').value='active';
+}
+
+function openStudentDetail(id){
+  const s = DATA.students.find(x=>x.id===id);
+  if(!s) return;
+  document.getElementById('detail-title').innerHTML = s.name+' <button class="modal-close" onclick="closeModal(\'student-detail-modal\')">✕</button>';
+  document.getElementById('student-detail-content').innerHTML = `
+    <div class="detail-section">
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+        <span class="status-badge ${s.status}">${s.status}</span>
+        ${s.discipline?`<span class="tag">${s.discipline}</span>`:''}
+      </div>
+      <div class="detail-label">Monthly Focus</div>
+      <div class="detail-value">${s.focus||'—'}</div>
+    </div>
+    ${s.goal?`<div class="detail-section"><div class="detail-label">Yearly Goal</div><div class="detail-value">${s.goal}</div></div>`:''}
+    ${s.obstacle?`<div class="detail-section"><div class="detail-label">Biggest Obstacle</div><div class="detail-value">${s.obstacle}</div></div>`:''}
+    <div class="detail-section">
+      <div style="display:flex;gap:16px">
+        <div><div class="detail-label">Start</div><div class="detail-value" style="font-family:'DM Mono',monospace;font-size:13px">${s.start||'—'}</div></div>
+        <div><div class="detail-label">Renewal</div><div class="detail-value" style="font-family:'DM Mono',monospace;font-size:13px">${s.renewal||'—'}</div></div>
+        ${s.wa?`<div><div class="detail-label">WhatsApp</div><div class="detail-value" style="font-family:'DM Mono',monospace;font-size:13px">${s.wa}</div></div>`:''}
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+      <button class="btn btn-dojo btn-sm" onclick="openIntentionModal('${s.id}','${s.name}')">📋 Set Intentions</button>
+      <button class="btn btn-secondary btn-sm" onclick="openNoteModal('${s.id}')">📝 Add Note</button>
+      <button class="btn btn-secondary btn-sm" onclick="changeStatus('${s.id}')">🔄 Status</button>
+    </div>
+    <div class="detail-label">Session Notes (${(s.notes||[]).length})</div>
+    <div class="notes-list">
+      ${(s.notes||[]).length===0?'<p style="font-family:\'DM Mono\',monospace;font-size:11px;opacity:.4;margin-top:8px">No notes yet.</p>':
+        [...(s.notes||[])].reverse().map(n=>`
+          <div class="note-item">
+            ${n.text}
+            <div class="note-date">${n.date}</div>
+          </div>
+        `).join('')
+      }
+    </div>
+  `;
+  openModal('student-detail-modal');
+}
+
+function changeStatus(id){
+  const s = DATA.students.find(x=>x.id===id);
+  if(!s) return;
+  const statuses = ['active','expired','pending','returning'];
+  const next = statuses[(statuses.indexOf(s.status)+1)%statuses.length];
+  s.status = next;
+  saveData(DATA);
+  toast('Status changed to '+next);
+  openStudentDetail(id);
+  renderStudents(currentFilter);
+}
+
+function openNoteModal(id){
+  document.getElementById('note-student-id').value = id;
+  document.getElementById('note-text').value = '';
+  closeModal('student-detail-modal');
+  openModal('add-note-modal');
+}
+
+function addNote(){
+  const id = document.getElementById('note-student-id').value;
+  const text = document.getElementById('note-text').value.trim();
+  if(!text){toast('Write something first');return;}
+  const s = DATA.students.find(x=>x.id===id);
+  if(!s) return;
+  if(!s.notes) s.notes=[];
+  s.notes.push({text, date: new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})});
+  saveData(DATA);
+  closeModal('add-note-modal');
+  toast('Note saved');
+}
+
+function openIntentionModal(id, name){
+  document.getElementById('intention-student-id').value = id;
+  document.getElementById('intention-title').innerHTML = `${name}'s Intentions <button class="modal-close" onclick="closeModal('intention-modal')">✕</button>`;
+  const existing = (DATA.intentions||{})[id]||{};
+  document.getElementById('int-1').value = existing.t1||'';
+  document.getElementById('int-2').value = existing.t2||'';
+  document.getElementById('int-3').value = existing.t3||'';
+  closeModal('student-detail-modal');
+  openModal('intention-modal');
+}
+
+function saveIntention(){
+  const id = document.getElementById('intention-student-id').value;
+  if(!DATA.intentions) DATA.intentions={};
+  DATA.intentions[id] = {
+    t1: document.getElementById('int-1').value.trim(),
+    t2: document.getElementById('int-2').value.trim(),
+    t3: document.getElementById('int-3').value.trim(),
+    date: new Date().toISOString()
+  };
+  saveData(DATA);
+  closeModal('intention-modal');
+  toast('Intentions saved');
+}
+
+// ============================================================
+// CHECK-INS
+// ============================================================
+function setCheckinType(type, el){
+  document.querySelectorAll('#screen-checkins .pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  currentCheckinType = type;
+  renderCheckins();
+}
+
+function renderCheckins(){
+  const active = DATA.students.filter(s=>s.status==='active');
+  const today = todayKey();
+  document.getElementById('daily-prompt-card').textContent = getTodayPrompt(currentCheckinType);
+  if(active.length===0){
+    document.getElementById('checkin-list').innerHTML = '<div class="empty-state"><div class="empty-icon">🔁</div><p>No active students.</p></div>';
+    return;
+  }
+  document.getElementById('checkin-list').innerHTML = active.map(s=>{
+    const ci = ((DATA.checkins||{})[today]||{})[s.id]||{};
+    const done = ci[currentCheckinType];
+    return `<div class="student-card${done?' done':''}${done?' ':''}" style="${done?'border-color:var(--dojo)':''}">
+      <div class="student-header-row">
+        <div class="student-name">${s.name}</div>
+        <button class="ci-btn${done?' done':''}" style="padding:8px 14px;font-size:12px" onclick="toggleCheckin('${s.id}','${currentCheckinType}')">
+          ${done?'✓ Done':'Mark Done'}
+        </button>
+      </div>
+      <div class="student-focus" style="margin-top:4px">${s.focus||''}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCheckin(studentId, type){
+  const today = todayKey();
+  if(!DATA.checkins) DATA.checkins={};
+  if(!DATA.checkins[today]) DATA.checkins[today]={};
+  if(!DATA.checkins[today][studentId]) DATA.checkins[today][studentId]={};
+  DATA.checkins[today][studentId][type] = !DATA.checkins[today][studentId][type];
+  saveData(DATA);
+  renderCheckins();
+  renderDashCheckins();
+}
+
+function todayKey(){
+  return new Date().toISOString().split('T')[0];
+}
+
+// ============================================================
+// WEEKLY VIEW
+// ============================================================
+function renderWeekly(){
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  let html = '';
+  for(let i=0;i<7;i++){
+    const sched = WEEKLY_SCHEDULE[i];
+    const isToday = new Date().getDay()===i;
+    html += `<div class="card${isToday?' ':''}" style="${isToday?'border-color:var(--pink)':''}">
+      <div class="card-title" style="${isToday?'color:var(--pink)':''}">
+        ${days[i]}${isToday?' — Today':''}
+      </div>
+      ${sched.items.map(it=>`<div style="font-family:'DM Mono',monospace;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border);opacity:.75">• ${it}</div>`).join('')}
+    </div>`;
+  }
+  document.getElementById('full-week-schedule').innerHTML = html;
+
+  // Intentions
+  const active = DATA.students.filter(s=>s.status==='active');
+  let intentHtml = `<div class="section-title" style="margin-bottom:12px;font-size:16px">Weekly Intentions</div>`;
+  if(active.length===0){
+    intentHtml += '<p style="font-family:\'DM Mono\',monospace;font-size:11px;opacity:.4">No active students.</p>';
+  } else {
+    intentHtml += active.map(s=>{
+      const int = (DATA.intentions||{})[s.id]||{};
+      const hasInt = int.t1||int.t2||int.t3;
+      return `<div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div class="card-title" style="margin:0">${s.name}</div>
+          <button class="btn btn-secondary btn-sm" onclick="openIntentionModal('${s.id}','${s.name}')">Edit</button>
+        </div>
+        ${hasInt?`
+          ${int.t1?`<div style="font-size:13px;padding:4px 0;border-bottom:1px solid var(--border)">1. ${int.t1}</div>`:''}
+          ${int.t2?`<div style="font-size:13px;padding:4px 0;border-bottom:1px solid var(--border)">2. ${int.t2}</div>`:''}
+          ${int.t3?`<div style="font-size:13px;padding:4px 0">3. ${int.t3}</div>`:''}
+        `:'<p style="font-family:\'DM Mono\',monospace;font-size:11px;opacity:.4">No intentions set yet.</p>'}
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('weekly-intentions').innerHTML = intentHtml;
+}
+
+// ============================================================
+// RENEWALS
+// ============================================================
+function daysUntilRenewal(student){
+  if(!student.renewal) return 999;
+  const today = new Date();
+  const renewal = new Date(student.renewal);
+  return Math.ceil((renewal-today)/(1000*60*60*24));
+}
+
+function renderRenewals(){
+  const students = [...DATA.students].sort((a,b)=>daysUntilRenewal(a)-daysUntilRenewal(b));
+  if(students.length===0){
+    document.getElementById('renewal-list').innerHTML = '<div class="empty-state"><div class="empty-icon">🔔</div><p>No students yet.</p></div>';
+    return;
+  }
+  document.getElementById('renewal-list').innerHTML = students.map(s=>{
+    const days = daysUntilRenewal(s);
+    const urgent = days<=3;
+    const soon = days<=7;
+    const past = days<0;
+    let color = 'rgba(255,245,228,0.5)';
+    if(past) color='rgba(255,245,228,0.3)';
+    else if(urgent) color='var(--pink)';
+    else if(soon) color='var(--dojo)';
+    return `<div class="card" style="${urgent||soon?'border-color:'+color:''}">
+      <div class="student-header-row">
+        <div class="student-name">${s.name}</div>
+        <div class="status-badge ${s.status}">${s.status}</div>
+      </div>
+      <div style="font-family:'DM Mono',monospace;font-size:11px;margin-top:6px;color:${color}">
+        ${past?'Overdue by '+Math.abs(days)+' days':days===0?'Renews TODAY':days+' days until renewal'}
+      </div>
+      <div style="font-family:'DM Mono',monospace;font-size:10px;margin-top:3px;opacity:.5">${s.renewal||'No date set'}</div>
+      ${s.wa?`<a href="https://wa.me/${s.wa.replace(/[^0-9]/g,'')}" style="display:inline-block;margin-top:10px;font-family:'DM Mono',monospace;font-size:11px;color:var(--dojo);text-decoration:none">📱 Message on WhatsApp →</a>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// NUGGETS
+// ============================================================
+function renderNuggets(){
+  const nuggets = DATA.nuggets||[];
+  document.getElementById('nugget-student').innerHTML = '<option value="">— General —</option>'+
+    DATA.students.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  if(nuggets.length===0){
+    document.getElementById('nuggets-list').innerHTML = '<div class="empty-state"><div class="empty-icon">💎</div><p>No nuggets yet.</p></div>';
+    return;
+  }
+  document.getElementById('nuggets-list').innerHTML = [...nuggets].reverse().map(n=>{
+    const student = n.studentId ? DATA.students.find(s=>s.id===n.studentId) : null;
+    return `<div class="card">
+      <div style="font-size:15px;line-height:1.6;font-style:italic;margin-bottom:8px">${n.text}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:10px;opacity:.5;display:flex;gap:12px">
+        <span>${n.date}</span>
+        ${student?`<span>— ${student.name}</span>`:'<span>General</span>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addNugget(){
+  const text = document.getElementById('nugget-text').value.trim();
+  if(!text){toast('Write the nugget first');return;}
+  if(!DATA.nuggets) DATA.nuggets=[];
+  DATA.nuggets.push({
+    id:'nug_'+Date.now(),
+    text,
+    studentId: document.getElementById('nugget-student').value||null,
+    date: new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})
+  });
+  saveData(DATA);
+  document.getElementById('nugget-text').value='';
+  closeModal('add-nugget-modal');
+  toast('Nugget saved');
+  renderNuggets();
+}
+
+// ============================================================
+// ANALYTICS
+// ============================================================
+function renderAnalytics(){
+  const students = DATA.students;
+  const today = todayKey();
+  const active = students.filter(s=>s.status==='active');
+  const checkinDates = Object.keys(DATA.checkins||{}).sort().slice(-14);
+
+  let html = `
+    <div class="stats-row" style="grid-template-columns:repeat(2,1fr)">
+      <div class="stat-box"><div class="stat-num">${students.length}</div><div class="stat-label">Total</div></div>
+      <div class="stat-box"><div class="stat-num">${active.length}</div><div class="stat-label">Active</div></div>
+      <div class="stat-box"><div class="stat-num">${students.filter(s=>s.status==='expired').length}</div><div class="stat-label">Alumni</div></div>
+      <div class="stat-box"><div class="stat-num">${(DATA.nuggets||[]).length}</div><div class="stat-label">Nuggets</div></div>
+    </div>
+  `;
+
+  if(active.length>0){
+    html += '<div class="card"><div class="card-title">Check-in Rates (Last 14 Days)</div>';
+    active.forEach(s=>{
+      const total = checkinDates.length*3;
+      const done = checkinDates.reduce((acc,d)=>{
+        const ci = ((DATA.checkins||{})[d]||{})[s.id]||{};
+        return acc+(ci.morning?1:0)+(ci.afternoon?1:0)+(ci.evening?1:0);
+      },0);
+      const pct = total>0?Math.round((done/total)*100):0;
+      html+=`<div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:11px;margin-bottom:4px">
+          <span>${s.name}</span><span>${pct}%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      </div>`;
+    });
+    html+='</div>';
+  }
+
+  document.getElementById('analytics-content').innerHTML = html;
+}
+
+// ============================================================
+// AI — NEWSLETTER
+// ============================================================
+async function generateNewsletter(){
+  const topic = document.getElementById('nl-topic').value.trim();
+  if(!topic){toast('Enter a topic first');return;}
+  const audience = document.getElementById('nl-audience').value;
+  const format = document.getElementById('nl-format').value;
+  const tone = document.getElementById('nl-tone').value;
+  const out = document.getElementById('nl-output');
+  out.className='ai-output loading';
+  out.textContent='Generating newsletter...';
+
+  const prompt = `You are The Sensei — the voice behind KungYou Academy. Your students are Nigerian 18-30 year old practitioners building discipline in their lives.
+
+Write a ${format} newsletter on the topic: "${topic}"
+Audience: ${audience}
+Tone: ${tone}
+
+Voice rules:
+- No em dashes
+- No bullet points in teaching content
+- No hype words like hustle, grind, journey, amazing
+- Short declarative sentences, 2-3 per paragraph
+- Use: build, structure, foundation, clarity, honest, execute, sustain, commit, weight
+- Close with: "I love you and God will help you."
+- Write in flowing paragraphs, not lists
+- Open with a question hook`;
+
+  try{
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data = await res.json();
+    out.className='ai-output';
+    out.textContent = data.content?.[0]?.text||'Something went wrong. Try again.';
+  }catch(e){
+    out.className='ai-output';
+    out.textContent='Error generating newsletter. Check your connection.';
+  }
+}
+
+// ============================================================
+// AI — CHECK-IN GENERATOR
+// ============================================================
+let currentAiType = 'morning';
+
+function setAiType(type, el){
+  document.querySelectorAll('#screen-ai-checkin .pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  currentAiType = type;
+}
+
+function populateAiStudentSelect(){
+  const sel = document.getElementById('ai-student-select');
+  const active = DATA.students.filter(s=>s.status==='active');
+  sel.innerHTML = '<option value="">— Choose a student —</option>'+
+    active.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+}
+
+async function generateCheckin(){
+  const id = document.getElementById('ai-student-select').value;
+  if(!id){toast('Select a student first');return;}
+  const s = DATA.students.find(x=>x.id===id);
+  if(!s) return;
+  await runCheckinGeneration([s], currentAiType, 'ai-output');
+}
+
+async function generateAllCheckins(){
+  const active = DATA.students.filter(s=>s.status==='active');
+  if(active.length===0){toast('No active students');return;}
+  await runCheckinGeneration(active, currentAiType, 'ai-output');
+}
+
+async function runCheckinGeneration(students, type, outputId){
+  const out = document.getElementById(outputId);
+  out.className='ai-output loading';
+  out.textContent='Generating check-in messages...';
+
+  const typeMap={morning:'Morning Ignition (7am — set the intention for the day)',afternoon:'Afternoon Pulse (1pm — reality check on the morning)',evening:'Evening Close-out (9pm — honest review of the day)'};
+
+  const studentProfiles = students.map(s=>`
+Name: ${s.name}
+Monthly Focus: ${s.focus||'Not set'}
+Goal: ${s.goal||'Not set'}
+Obstacle: ${s.obstacle||'Not set'}
+Discipline Profile: ${s.discipline||'Not set'}
+Intentions: ${(()=>{const int=(DATA.intentions||{})[s.id]||{};return [int.t1,int.t2,int.t3].filter(Boolean).join(', ')||'None set';})()}
+`).join('\n---\n');
+
+  const prompt = `You are The Sensei from KungYou Academy. Write a personal ${typeMap[type]} check-in message for each student below.
+
+Each message must be:
+- Written directly to that student by name
+- Specific to their focus, goal, and obstacle
+- Short (3-4 sentences max)
+- No em dashes, no bullet points, no hype words
+- Ends with a specific question they must answer
+- Feels like a mentor who knows them, not a bot
+
+${students.length>1?'Write one message per student, clearly labelled with their name.':''}
+
+Students:
+${studentProfiles}`;
+
+  try{
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data = await res.json();
+    out.className='ai-output';
+    out.textContent = data.content?.[0]?.text||'Something went wrong.';
+  }catch(e){
+    out.className='ai-output';
+    out.textContent='Error. Check your connection and try again.';
+  }
+}
+
+// ============================================================
+// EXPORT / IMPORT
+// ============================================================
+function exportJSON(){
+  const blob = new Blob([JSON.stringify(DATA,null,2)],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url;
+  a.download='kya-backup-'+todayKey()+'.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Backup downloaded');
+}
+
+function exportCSV(){
+  const headers = ['Name','WhatsApp','Focus','Goal','Obstacle','Discipline','Start','Renewal','Status'];
+  const rows = DATA.students.map(s=>[s.name,s.wa||'',s.focus||'',s.goal||'',s.obstacle||'',s.discipline||'',s.start||'',s.renewal||'',s.status].map(v=>`"${v}"`).join(','));
+  const csv = [headers.join(','),...rows].join('\n');
+  const blob = new Blob([csv],{type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url;
+  a.download='kya-students-'+todayKey()+'.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('CSV downloaded');
+}
+
+function importJSON(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    try{
+      const imported = JSON.parse(ev.target.result);
+      if(!imported.students) throw new Error('Invalid format');
+      DATA = {...defaultData(),...imported};
+      saveData(DATA);
+      toast('Backup restored successfully');
+      renderDashboard();
+    }catch(err){
+      toast('Import failed — invalid file');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function clearData(){
+  if(confirm('Clear ALL data? This cannot be undone. Export a backup first.')){
+    DATA = defaultData();
+    saveData(DATA);
+    toast('All data cleared');
+    renderDashboard();
+  }
+}
+
+function copyOutput(id){
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(()=>toast('Copied to clipboard'));
+}
+
+// ============================================================
+// MODAL HELPERS
+// ============================================================
+function openModal(id){
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeModal(id){
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow='';
+}
+
+function openMoreMenu(){
+  openModal('more-menu-modal');
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay=>{
+  overlay.addEventListener('click', e=>{
+    if(e.target===overlay) closeModal(overlay.id);
+  });
+});
+
+// ============================================================
+// TOAST
+// ============================================================
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2200);
+}
+
+// ============================================================
+// PWA INSTALL
+// ============================================================
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', e=>{
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-banner').classList.add('show');
+});
+
+async function installApp(){
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const result = await deferredPrompt.userChoice;
+  if(result.outcome==='accepted') toast('KungYou installed!');
+  deferredPrompt = null;
+  document.getElementById('install-banner').classList.remove('show');
+}
+
+window.addEventListener('appinstalled',()=>{
+  document.getElementById('install-banner').classList.remove('show');
+  toast('KungYou Academy installed ✓');
+});
+
+// ============================================================
+// SERVICE WORKER
+// ============================================================
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded',()=>{
+  renderDashboard();
+  shuffleQuote();
+  // Set today's date as default for new student
+  const today = todayKey();
+  document.getElementById('s-start').value = today;
+  const nextMonth = new Date();
+  nextMonth.setMonth(nextMonth.getMonth()+1);
+  document.getElementById('s-renewal').value = nextMonth.toISOString().split('T')[0];
+});
+</script>
+</body>
+</html>
